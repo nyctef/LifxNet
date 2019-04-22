@@ -16,7 +16,7 @@ namespace LifxNet
 	{
 		
 		private const int Port = 56700;
-		private UdpClient _socket;
+		private AllInterfacesUdpClient _socket;
         private bool _isRunning;
 
 		private LifxClient()
@@ -36,11 +36,7 @@ namespace LifxNet
 
         private void Initialize()
 		{
-            IPEndPoint end = new IPEndPoint(IPAddress.Any, Port);
-			_socket = new UdpClient(end);
-            _socket.Client.Blocking = false;
-			_socket.DontFragment = true;
-            _socket.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+			_socket = AllInterfacesUdpClient.Create(Port);
             _isRunning = true;
             StartReceiveLoop();
 		}
@@ -133,7 +129,7 @@ namespace LifxNet
 #endif
 			if (hostName == null)
 			{
-				hostName = "255.255.255.255";
+				hostName = IPAddress.Broadcast.ToString();
 			}
 			TaskCompletionSource<T> tcs = null;
             if (//header.AcknowledgeRequired && 
@@ -160,6 +156,10 @@ namespace LifxNet
             {
                 await WritePacketToStreamAsync(stream, header, (UInt16)type, payload).ConfigureAwait(false);
                 var msg = stream.ToArray();
+
+                System.Diagnostics.Debug.WriteLine("Sending {0}:{1}", hostName,
+                string.Join(",", (from a in msg select a.ToString("X2")).ToArray()));
+
                 await _socket.SendAsync(msg, msg.Length, hostName, Port);
             }
 			//{
@@ -216,7 +216,7 @@ namespace LifxNet
 
 		private async Task WritePacketToStreamAsync(Stream outStream, FrameHeader header, UInt16 type, byte[] payload)
 		{
-			using (var dw = new BinaryWriter(outStream) { /*ByteOrder = ByteOrder.LittleEndian*/ })
+			using (var dw = new BinaryWriter(outStream) {  })
 			{
 				//BinaryWriter bw = new BinaryWriter(ms);
 				#region Frame
