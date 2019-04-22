@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +47,7 @@ namespace LifxNet
 
 			var b = BitConverter.GetBytes((UInt16)transitionDuration.TotalMilliseconds);
 
-			await BroadcastMessageAsync<AcknowledgementResponse>(bulb.HostName, header, MessageType.LightSetPower,
+			await BroadcastMessageAsync<AcknowledgementResponse>(bulb.SendClient, bulb.HostName, header, MessageType.LightSetPower,
 				(UInt16)(isOn ? 65535 : 0), b
 			).ConfigureAwait(false);
 		}
@@ -63,7 +64,7 @@ namespace LifxNet
 				AcknowledgeRequired = true
 			};
 			return (await BroadcastMessageAsync<LightPowerResponse>(
-				bulb.HostName, header, MessageType.LightGetPower).ConfigureAwait(false)).IsOn;
+				bulb.SendClient, bulb.HostName, header, MessageType.LightGetPower).ConfigureAwait(false)).IsOn;
 		}
 
 		/// <summary>
@@ -129,7 +130,7 @@ namespace LifxNet
 			var b = BitConverter.GetBytes(brightness);
 			var k = BitConverter.GetBytes(kelvin);
 
-			await BroadcastMessageAsync<AcknowledgementResponse>(bulb.HostName, header,
+			await BroadcastMessageAsync<AcknowledgementResponse>(bulb.SendClient, bulb.HostName, header,
 				MessageType.LightSetColor, (byte)0x00, //reserved
 					hue, saturation, brightness, kelvin, //HSBK
 					duration
@@ -172,7 +173,7 @@ namespace LifxNet
 				AcknowledgeRequired = false
 			};
 			return BroadcastMessageAsync<LightStateResponse>(
-				bulb.HostName, header, MessageType.LightGet);
+				bulb.SendClient, bulb.HostName, header, MessageType.LightGet);
 		}
 	}
 }

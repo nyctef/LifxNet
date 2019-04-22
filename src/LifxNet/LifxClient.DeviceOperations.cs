@@ -42,7 +42,7 @@ namespace LifxNet
 				AcknowledgeRequired = true
 			};
 
-			await BroadcastMessageAsync<AcknowledgementResponse>(device.HostName, header,
+			await BroadcastMessageAsync<AcknowledgementResponse>(device.SendClient, device.HostName, header,
 				MessageType.DeviceSetPower, (UInt16)(isOn ? 65535 : 0));
 		}
 
@@ -58,7 +58,7 @@ namespace LifxNet
 				Identifier = (uint)randomizer.Next(),
 				AcknowledgeRequired = false
 			};
-			var resp = await BroadcastMessageAsync<StateLabelResponse>(device.HostName, header, MessageType.DeviceGetLabel);
+			var resp = await BroadcastMessageAsync<StateLabelResponse>(device.SendClient, device.HostName, header, MessageType.DeviceGetLabel);
 			return resp.Label;
 		}
 
@@ -76,7 +76,7 @@ namespace LifxNet
 				AcknowledgeRequired = true
 			};
 			var resp = await BroadcastMessageAsync<AcknowledgementResponse>(
-				device.HostName, header, MessageType.DeviceSetLabel, label);
+                device.SendClient, device.HostName, header, MessageType.DeviceSetLabel, label);
 		}
 
 		/// <summary>
@@ -89,7 +89,7 @@ namespace LifxNet
 				Identifier = (uint)randomizer.Next(),
 				AcknowledgeRequired = false
 			};
-			var resp = await BroadcastMessageAsync<StateVersionResponse>(device.HostName, header, MessageType.DeviceGetVersion);
+			var resp = await BroadcastMessageAsync<StateVersionResponse>(device.SendClient, device.HostName, header, MessageType.DeviceGetVersion);
 			return resp;
 		}
 		/// <summary>
@@ -104,7 +104,7 @@ namespace LifxNet
 				Identifier = (uint)randomizer.Next(),
 				AcknowledgeRequired = false
 			};
-			var resp = await BroadcastMessageAsync<StateHostFirmwareResponse>(device.HostName, header, MessageType.DeviceGetHostFirmware);
+			var resp = await BroadcastMessageAsync<StateHostFirmwareResponse>(device.SendClient, device.HostName, header, MessageType.DeviceGetHostFirmware);
 			return resp;
 		}
 	}

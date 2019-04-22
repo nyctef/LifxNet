@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace LifxNet
 			public Device Device { get; internal set; }
 		}
 
-		private void ProcessDeviceDiscoveryMessage(System.Net.IPAddress remoteAddress, int remotePort, LifxResponse msg)
+		private void ProcessDeviceDiscoveryMessage(System.Net.IPAddress remoteAddress, int remotePort, LifxResponse msg, IUdpClient respondClient)
 		{
             string id = msg.Header.TargetMacAddressName; //remoteAddress.ToString()
             if (DiscoveredBulbs.ContainsKey(id))  //already discovered
@@ -63,7 +64,8 @@ namespace LifxNet
 				Service = msg.Payload[0],
 				Port = BitConverter.ToUInt32(msg.Payload, 1),
 				LastSeen = DateTime.UtcNow,
-                MacAddress = msg.Header.TargetMacAddress
+                MacAddress = msg.Header.TargetMacAddress,
+                SendClient = respondClient,
 			};
 			DiscoveredBulbs[id] = device;
 			devices.Add(device);
@@ -98,7 +100,7 @@ namespace LifxNet
 				{
 					try
 					{
-						await BroadcastMessageAsync<UnknownResponse>(null, header, MessageType.DeviceGetService, null);
+						await BroadcastMessageAsync<UnknownResponse>(_socket, null, header, MessageType.DeviceGetService, null);
 					}
 					catch { }
 					await Task.Delay(5000);
@@ -153,6 +155,7 @@ namespace LifxNet
         /// Gets the MAC address
         /// </summary>
         public byte[] MacAddress { get; internal set; }
+        internal IUdpClient SendClient { get; set; }
         /// <summary>
         /// Gets the MAC address
         /// </summary>
@@ -173,5 +176,6 @@ namespace LifxNet
 		internal LightBulb()
 		{
 		}
+
     }
 }

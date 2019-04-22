@@ -49,22 +49,25 @@ namespace LifxNet
                     try
                     {
                         var result = await _socket.ReceiveAsync();
-                        if (result.Buffer.Length > 0)
+                        if (result.ReceiveResult.Buffer.Length > 0)
                         {
-                            HandleIncomingMessages(result.Buffer, result.RemoteEndPoint);
+                            HandleIncomingMessages(result);
                         }
                     }
                     catch { }
             });
         }
 
-        private void HandleIncomingMessages(byte[] data, System.Net.IPEndPoint endpoint) 
+        private void HandleIncomingMessages(UdpResult result) 
 		{
-			var remote = endpoint;
-			var msg = ParseMessage(data);
+            var remote = result.ReceiveResult.RemoteEndPoint;
+            var data = result.ReceiveResult.Buffer;
+            var respondClient = result.SendClient;
+
+			var msg = ParseMessage(data, respondClient);
 			if (msg.Type == MessageType.DeviceStateService)
 			{
-				ProcessDeviceDiscoveryMessage(remote.Address, remote.Port, msg);
+				ProcessDeviceDiscoveryMessage(remote.Address, remote.Port, msg, respondClient);
 			}
 			else
 			{
@@ -92,7 +95,7 @@ namespace LifxNet
 			_socket.Dispose();
 		}
 
-		private Task<T> BroadcastMessageAsync<T>(string hostName, FrameHeader header, MessageType type, params object[] args)
+		private Task<T> BroadcastMessageAsync<T>(IUdpClient sendClient, string hostName, FrameHeader header, MessageType type, params object[] args)
 						where T : LifxResponse
 
 		{
@@ -115,9 +118,9 @@ namespace LifxNet
 						throw new NotSupportedException(args.GetType().FullName);
 				}
 			}
-			return BroadcastMessagePayloadAsync<T>(hostName, header, type, payload.ToArray());
+			return BroadcastMessagePayloadAsync<T>(sendClient, hostName, header, type, payload.ToArray());
 		}
-		private async Task<T> BroadcastMessagePayloadAsync<T>(string hostName, FrameHeader header, MessageType type, byte[] payload)
+		private async Task<T> BroadcastMessagePayloadAsync<T>(IUdpClient sendClient, string hostName, FrameHeader header, MessageType type, byte[] payload)
 			where T : LifxResponse
 		{
 #if DEBUG
@@ -160,7 +163,7 @@ namespace LifxNet
                 System.Diagnostics.Debug.WriteLine("Sending {0}:{1}", hostName,
                 string.Join(",", (from a in msg select a.ToString("X2")).ToArray()));
 
-                await _socket.SendAsync(msg, msg.Length, hostName, Port);
+                await sendClient.SendAsync(msg, msg.Length, hostName, Port);
             }
 			//{
 			//	await WritePacketToStreamAsync(stream, header, (UInt16)type, payload).ConfigureAwait(false);
@@ -184,7 +187,7 @@ namespace LifxNet
 			return result;
 		}
 
-		private LifxResponse ParseMessage(byte[] packet)
+		private LifxResponse ParseMessage(byte[] packet, IUdpClient respondClient)
 		{
 			using (MemoryStream ms = new MemoryStream(packet))
 			{
@@ -210,7 +213,7 @@ namespace LifxNet
 				byte[] payload = null;
 				if (size > 36)
 				 payload = br.ReadBytes(size - 36);
-				return LifxResponse.Create(header, type, source, payload);
+				return LifxResponse.Create(header, type, source, payload, respondClient);
 			}
 		}
 

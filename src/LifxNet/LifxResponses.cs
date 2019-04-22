@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace LifxNet
 	/// </summary>
 	public abstract class LifxResponse
 	{
-		internal static LifxResponse Create(FrameHeader header, MessageType type, UInt32 source, byte[] payload)
+		internal static LifxResponse Create(FrameHeader header, MessageType type, UInt32 source, byte[] payload, IUdpClient respondClient)
 		{
 			LifxResponse response = null;
 			switch(type)
@@ -45,6 +46,7 @@ namespace LifxNet
 			response.Type = type;
 			response.Payload = payload;
 			response.Source = source;
+            response.RespondClient = respondClient;
 			return response;
 		}
 		internal LifxResponse() { }
@@ -52,7 +54,8 @@ namespace LifxNet
 		internal byte[] Payload { get; private set; }
 		internal MessageType Type { get; private set; }
 		internal UInt32 Source { get; private set; }
-	}
+        internal IUdpClient RespondClient { get; private set; }
+    }
 	/// <summary>
 	/// Response to any message sent with ack_required set to 1. 
 	/// </summary>

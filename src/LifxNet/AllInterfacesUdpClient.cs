@@ -11,12 +11,12 @@ using System.Threading;
 
 namespace LifxNet
 {
-    internal class AllInterfacesUdpClient : IDisposable
+    internal class AllInterfacesUdpClient : IUdpClient
     {
-        private readonly AsyncQueue<UdpReceiveResult> _receiveQueue;
+        private readonly AsyncQueue<UdpResult> _receiveQueue;
         private readonly List<UdpClient> _sendClients;
 
-        public AllInterfacesUdpClient(List<UdpClient> sendClients, AsyncQueue<UdpReceiveResult> receiveQueue)
+        public AllInterfacesUdpClient(List<UdpClient> sendClients, AsyncQueue<UdpResult> receiveQueue)
         {
             _sendClients = sendClients;
             _receiveQueue = receiveQueue;
@@ -27,7 +27,7 @@ namespace LifxNet
             logger = logger ?? new TraceLogger();
 
             var sendClients = new List<UdpClient>();
-            var receiveQueue = new AsyncQueue<UdpReceiveResult>();
+            var receiveQueue = new AsyncQueue<UdpResult>();
 
             foreach (var iface in NetworkInterface.GetAllNetworkInterfaces())
             {
@@ -57,12 +57,12 @@ namespace LifxNet
 
                         void receiveCallback(IAsyncResult result)
                         {
-                            var queue = (AsyncQueue<UdpReceiveResult>)result.AsyncState;
+                            var queue = (AsyncQueue<UdpResult>)result.AsyncState;
                             IPEndPoint remoteEndpoint = null;
                             var bytes = sendClient.EndReceive(result, ref remoteEndpoint);
                             logger.LogDebug($"Received {bytes.Length} bytes from {remoteEndpoint}");
 
-                            queue.Enqueue(new UdpReceiveResult(bytes, remoteEndpoint));
+                            queue.Enqueue(new UdpResult(new SingleUdpClient(sendClient), new UdpReceiveResult(bytes, remoteEndpoint)));
 
                             // and loop
                             sendClient.BeginReceive(receiveCallback, queue);
@@ -86,12 +86,12 @@ namespace LifxNet
             }
         }
 
-        internal Task<UdpReceiveResult> ReceiveAsync()
+        public Task<UdpResult> ReceiveAsync()
         {
             return _receiveQueue.DequeueAsync(CancellationToken.None);
         }
 
-        internal Task SendAsync(byte[] msg, int length, string hostName, int port)
+        public Task SendAsync(byte[] msg, int length, string hostName, int port)
         {
             return Task.WhenAll(_sendClients.Select(async sc =>
             {
@@ -101,9 +101,53 @@ namespace LifxNet
                 }
                 catch (Exception e)
                 {
-                    throw new Exception($"Error while trying to send {length} bytes to {hostName}:{port} : {e.Message}",  e);
+                    throw new Exception($"Error while trying to send {length} bytes to {hostName}:{port}",  e);
                 }
             }));
+        }
+    }
+
+    internal class SingleUdpClient : IUdpClient
+    {
+        private readonly UdpClient underlying;
+
+        public SingleUdpClient(UdpClient underlying)
+        {
+            this.underlying = underlying;
+        }
+
+        public void Dispose()
+        {
+            underlying.Dispose();
+        }
+
+        public async Task<UdpResult> ReceiveAsync()
+        {
+            var result = await underlying.ReceiveAsync();
+            return new UdpResult(this, result);
+        }
+
+        public Task SendAsync(byte[] msg, int length, string hostName, int port)
+        {
+            return underlying.SendAsync(msg, length, hostName, port);
+        }
+    }
+
+    internal interface IUdpClient : IDisposable
+    {
+        Task<UdpResult> ReceiveAsync();
+        Task SendAsync(byte[] msg, int length, string hostName, int port);
+    }
+
+    internal class UdpResult
+    {
+        public IUdpClient SendClient { get; }
+        public UdpReceiveResult ReceiveResult { get; }
+
+        public UdpResult(IUdpClient sendClient, UdpReceiveResult udpReceiveResult)
+        {
+            SendClient = sendClient;
+            ReceiveResult = udpReceiveResult;
         }
     }
 }
