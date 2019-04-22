@@ -45,7 +45,7 @@ namespace LifxNet
 				AcknowledgeRequired = true
 			};
 
-			var b = BitConverter.GetBytes((UInt16)transitionDuration.TotalMilliseconds);
+			var b = BitConverter.GetBytes((UInt32)transitionDuration.TotalMilliseconds);
 
 			await BroadcastMessageAsync<AcknowledgementResponse>(bulb.SendClient, bulb.HostName, header, MessageType.LightSetPower,
 				(UInt16)(isOn ? 65535 : 0), b

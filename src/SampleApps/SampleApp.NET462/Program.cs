@@ -33,6 +33,8 @@ namespace SampleApp.NET462
             //var label = await client.GetDeviceLabelAsync(e.Device);
             var state = await client.GetLightStateAsync(e.Device as LightBulb);
             Console.WriteLine($"{state.Label}\n\tIs on: {state.IsOn}\n\tHue: {state.Hue}\n\tSaturation: {state.Saturation}\n\tBrightness: {state.Brightness}\n\tTemperature: {state.Kelvin}");
+
+            await client.TurnBulbOffAsync(e.Device as LightBulb, TimeSpan.FromMilliseconds(0));
         }
     }
 }
