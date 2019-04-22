@@ -7,51 +7,54 @@ using System.Threading.Tasks;
 
 namespace LifxNet
 {
-	public abstract class LifxMessage
+	internal sealed class LifxMessage
 	{
-		internal static LifxMessage Create(FrameHeader header, MessageType type, UInt32 source, byte[] payload, IUdpClient respondClient)
+        public LifxHeader Header { get; }
+
+        public ILifxPayload Payload { get; }
+
+        public IUdpClient RespondClient { get; }
+
+        internal static LifxMessage Create(LifxHeader header, byte[] payload, IUdpClient respondClient)
 		{
-			LifxMessage response = null;
-			switch(type)
+			ILifxPayload parsedPayload = null;
+
+			switch(header.ProtocolHeader.MessageType)
 			{
 				case MessageType.DeviceAcknowledgement:
-					response = new AcknowledgementResponse(payload);
+					parsedPayload = AcknowledgementResponse.FromBytes();
 					break;
 				case MessageType.DeviceStateLabel:
-					response = new StateLabelResponse(payload);
+					parsedPayload = StateLabelResponse.FromBytes(payload);
 					break;
 				case MessageType.LightState:
-					response = new LightStateResponse(payload);
+					parsedPayload = LightStateResponse.FromBytes(payload);
 					break;
 				case MessageType.LightStatePower:
-					response = new LightPowerResponse(payload);
+					parsedPayload = LightPowerResponse.FromBytes(payload);
 					break;
 				case MessageType.DeviceStateVersion:
-					response = new StateVersionResponse(payload);
+					parsedPayload = StateVersionResponse.FromBytes(payload);
 					break;
 				case MessageType.DeviceStateHostFirmware:
-					response = new StateHostFirmwareResponse(payload);
+					parsedPayload = StateHostFirmwareResponse.FromBytes(payload);
 					break;
 				case MessageType.DeviceStateService:
-					response = new StateServiceResponse(payload);
+					parsedPayload = StateServiceResponse.FromBytes(payload);
 					break;
 				default:
-					response = new UnknownResponse(payload);
+					parsedPayload = UnknownResponse.FromBytes(payload);
 					break;
 			}
-			response.Header = header;
-			response.Type = type;
-			response.Payload = payload;
-			response.Source = source;
-            response.RespondClient = respondClient;
-			return response;
-		}
-		internal LifxMessage() { }
-		internal FrameHeader Header { get; private set; }
-		internal byte[] Payload { get; private set; }
-		internal MessageType Type { get; private set; }
-		internal UInt32 Source { get; private set; }
-        internal IUdpClient RespondClient { get; private set; }
-    }
 
+            return new LifxMessage(header, parsedPayload, respondClient);
+		}
+
+        internal LifxMessage(LifxHeader header, ILifxPayload payload, IUdpClient respondClient)
+        {
+            Header = header;
+            Payload = payload;
+            RespondClient = respondClient;
+        }
+    }
 }
