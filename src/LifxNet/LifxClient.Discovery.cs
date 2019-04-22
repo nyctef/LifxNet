@@ -43,7 +43,7 @@ namespace LifxNet
 			public Device Device { get; internal set; }
 		}
 
-		private void ProcessDeviceDiscoveryMessage(System.Net.IPAddress remoteAddress, int remotePort, LifxResponse msg, IUdpClient respondClient)
+		private void ProcessDeviceDiscoveryMessage(System.Net.IPAddress remoteAddress, int remotePort, LifxMessage msg, IUdpClient respondClient)
 		{
             string id = msg.Header.TargetMacAddressName; //remoteAddress.ToString()
             if (DiscoveredBulbs.ContainsKey(id))  //already discovered

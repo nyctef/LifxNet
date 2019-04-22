@@ -9,10 +9,10 @@ using System.Net;
 
 namespace LifxNet
 {
-	/// <summary>
-	/// LIFX Client for communicating with bulbs
-	/// </summary>
-	public partial class LifxClient : IDisposable
+    /// <summary>
+    /// LIFX Client for communicating with bulbs
+    /// </summary>
+    public partial class LifxClient : IDisposable
 	{
 		
 		private const int Port = 56700;
@@ -96,7 +96,7 @@ namespace LifxNet
 		}
 
 		private Task<T> BroadcastMessageAsync<T>(IUdpClient sendClient, string hostName, FrameHeader header, MessageType type, params object[] args)
-						where T : LifxResponse
+						where T : LifxMessage
 
 		{
 			List<byte> payload = new List<byte>();
@@ -121,7 +121,7 @@ namespace LifxNet
 			return BroadcastMessagePayloadAsync<T>(sendClient, hostName, header, type, payload.ToArray());
 		}
 		private async Task<T> BroadcastMessagePayloadAsync<T>(IUdpClient sendClient, string hostName, FrameHeader header, MessageType type, byte[] payload)
-			where T : LifxResponse
+			where T : LifxMessage
 		{
 #if DEBUG
 			/// MemoryStream ms = new MemoryStream();
@@ -140,7 +140,7 @@ namespace LifxNet
 				typeof(T) != typeof(UnknownResponse))
 			{
 				tcs = new TaskCompletionSource<T>();
-				Action<LifxResponse> action = (r) =>
+				Action<LifxMessage> action = (r) =>
 				{
 					if(!tcs.Task.IsCompleted)
 					{
@@ -187,7 +187,7 @@ namespace LifxNet
 			return result;
 		}
 
-		private LifxResponse ParseMessage(byte[] packet, IUdpClient respondClient)
+		private LifxMessage ParseMessage(byte[] packet, IUdpClient respondClient)
 		{
 			using (MemoryStream ms = new MemoryStream(packet))
 			{
@@ -213,7 +213,7 @@ namespace LifxNet
 				byte[] payload = null;
 				if (size > 36)
 				 payload = br.ReadBytes(size - 36);
-				return LifxResponse.Create(header, type, source, payload, respondClient);
+				return LifxMessage.Create(header, type, source, payload, respondClient);
 			}
 		}
 
@@ -280,32 +280,5 @@ namespace LifxNet
 			}
 		}
 	}
-
-	internal class FrameHeader
-	{
-		public UInt32 Identifier;
-		public byte Sequence;
-		public bool AcknowledgeRequired;
-		public bool ResponseRequired;
-		public byte[] TargetMacAddress;
-		public DateTime AtTime;
-		public FrameHeader()
-		{
-			Identifier = 0;
-			Sequence = 0;
-			AcknowledgeRequired = false;
-			ResponseRequired = false;
-			TargetMacAddress = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
-			AtTime = DateTime.MinValue;
-		}
-        public string TargetMacAddressName
-        {
-            get
-            {
-                if (TargetMacAddress == null) return null;
-                return string.Join(":", TargetMacAddress.Take(6).Select(tb => tb.ToString("X2")).ToArray());
-            }
-        }
-    }
 
 }

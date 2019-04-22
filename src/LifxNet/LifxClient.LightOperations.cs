@@ -10,7 +10,7 @@ namespace LifxNet
 {
 	public partial class LifxClient : IDisposable
 	{
-		private Dictionary<UInt32, Action<LifxResponse>> taskCompletions = new Dictionary<uint, Action<LifxResponse>>();
+		private Dictionary<UInt32, Action<LifxMessage>> taskCompletions = new Dictionary<uint, Action<LifxMessage>>();
 
 		/// <summary>
 		/// Turns a bulb on using the provided transition time
