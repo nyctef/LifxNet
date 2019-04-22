@@ -101,6 +101,15 @@ namespace LifxNet
 
             bw.Write((byte)SequenceNumber);
         }
+
+        public string TargetMacAddressName
+        {
+            get
+            {
+                if (TargetMacAddress == null) return null;
+                return string.Join(":", TargetMacAddress.Take(6).Select(tb => tb.ToString("X2")).ToArray());
+            }
+        }
     }
 
     internal class ProtocolHeader

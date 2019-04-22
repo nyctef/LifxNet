@@ -45,7 +45,7 @@ namespace LifxNet
 
 		private void ProcessDeviceDiscoveryMessage(System.Net.IPAddress remoteAddress, int remotePort, LifxMessage msg, IUdpClient respondClient)
 		{
-            string id = msg.Header.TargetMacAddressName; //remoteAddress.ToString()
+            string id = msg.Header.FrameAddress.TargetMacAddressName; //remoteAddress.ToString()
             if (DiscoveredBulbs.ContainsKey(id))  //already discovered
             {
 				DiscoveredBulbs[id].LastSeen = DateTime.UtcNow; //Update datestamp
@@ -53,18 +53,23 @@ namespace LifxNet
 
                 return;
 			}
-			if (msg.Source != discoverSourceID || //did we request the discovery?
+			if (msg.Header.Frame.SourceIdentifier != discoverSourceID || //did we request the discovery?
 				_DiscoverCancellationSource == null ||
 				_DiscoverCancellationSource.IsCancellationRequested) //did we cancel discovery?
 				return;
 
+            if (!(msg.Payload is StateServiceResponse stateServiceResponse))
+            {
+                return; // not the message we were expecting
+            }
+
 			var device = new LightBulb()
 			{
 				HostName = remoteAddress.ToString(),
-				Service = msg.Payload[0],
-				Port = BitConverter.ToUInt32(msg.Payload, 1),
+				Service = stateServiceResponse.Service,
+				Port = stateServiceResponse.Port,
 				LastSeen = DateTime.UtcNow,
-                MacAddress = msg.Header.TargetMacAddress,
+                MacAddress = msg.Header.FrameAddress.TargetMacAddress,
                 SendClient = respondClient,
 			};
 			DiscoveredBulbs[id] = device;
@@ -92,15 +97,12 @@ namespace LifxNet
             Task.Run(async () =>
 			{
 				System.Diagnostics.Debug.WriteLine("Sending GetServices");
-				FrameHeader header = new FrameHeader()
-				{
-					Identifier = source
-				};
+                var message = LifxMessage.CreateBroadcast(new GetServiceRequest(), source, false, false, 0);
 				while (!token.IsCancellationRequested)
 				{
 					try
 					{
-						await BroadcastMessageAsync<UnknownResponse>(_socket, null, header, MessageType.DeviceGetService, null);
+						await BroadcastMessageAsync(_socket, null, message);
 					}
 					catch { }
 					await Task.Delay(5000);

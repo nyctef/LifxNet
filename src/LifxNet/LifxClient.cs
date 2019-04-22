@@ -64,8 +64,8 @@ namespace LifxNet
             var data = result.ReceiveResult.Buffer;
             var respondClient = result.SendClient;
 
-			var msg = ParseMessage(data, respondClient);
-			if (msg.Header.ProtocolHeader.MessageType == MessageType.DeviceStateService)
+			var msg = LifxMessage.FromPacket(data, respondClient);
+            if (msg.Header.ProtocolHeader.MessageType == MessageType.DeviceStateService)
 			{
 				ProcessDeviceDiscoveryMessage(remote.Address, remote.Port, msg, respondClient);
 			}
@@ -147,44 +147,8 @@ namespace LifxNet
 			return result;
 		}
 
-		private LifxMessage ParseMessage(byte[] packet, IUdpClient respondClient)
-		{
-			using (MemoryStream ms = new MemoryStream(packet))
-			{
-                var headerBytes = new byte[36];
-                Array.Copy(packet, headerBytes, headerBytes.Length);
 
-				var header = LifxHeader.FromHeaderBytes(headerBytes);
 
-                byte[] payload = null;
-                if (packet.Length > 36)
-                {
-                    payload = new byte[packet.Length - 36];
-                    Array.Copy(packet, payload, payload.Length);
-                }
-
-                return LifxMessage.Create(header, payload, respondClient);
-			}
-		}
-
-		private async Task WritePacketToStreamAsync(Stream outStream, LifxMessage message)
-		{
-			using (var dw = new BinaryWriter(outStream) {  })
-			{
-                message.Header.Frame.WriteToStream(dw);
-
-                message.Header.FrameAddress.WriteToStream(dw);
-
-                message.Header.ProtocolHeader.WriteToStream(dw);
-
-                if (message.Payload != null)
-                {
-                    message.Payload.WriteToStream(dw);
-                }
-				
-				dw.Flush();
-			}
-		}
 	}
 
 }

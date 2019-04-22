@@ -4,11 +4,22 @@ using System.Text;
 
 namespace LifxNet
 {
+    internal class GetServiceRequest : ILifxPayload
+    {
+        public MessageType MessageType => MessageType.DeviceGetService;
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+        }
+    }
+
     /// <summary>
     /// Response to any message sent with ack_required set to 1. 
     /// </summary>
     internal class AcknowledgementResponse : ILifxPayload
     {
+        public MessageType MessageType => MessageType.DeviceAcknowledgement;
+
         internal static AcknowledgementResponse FromBytes()
         {
             return new AcknowledgementResponse();
@@ -36,6 +47,8 @@ namespace LifxNet
 
         public UInt32 Port { get; }
 
+        public MessageType MessageType => MessageType.DeviceStateService;
+
         internal static ILifxPayload FromBytes(byte[] payload)
         {
             var service = payload[0];
@@ -62,6 +75,8 @@ namespace LifxNet
 
         public string Label { get; }
 
+        public MessageType MessageType => MessageType.DeviceStateLabel;
+
         internal static ILifxPayload FromBytes(byte[] payload)
         {
             return new StateLabelResponse(Encoding.UTF8.GetString(payload, 0, payload.Length).Replace("\0", ""));
@@ -76,7 +91,7 @@ namespace LifxNet
     /// <summary>
     /// Sent by a device to provide the current light state
     /// </summary>
-    public class LightStateResponse : ILifxPayload
+    internal class LightStateResponse : ILifxPayload
     {
         public LightStateResponse(ushort hue, ushort saturation, ushort brightness, ushort kelvin, bool isOn, string label)
         {
@@ -113,6 +128,8 @@ namespace LifxNet
         /// </summary>
         public string Label { get; }
 
+        public MessageType MessageType => MessageType.LightState;
+
         internal static ILifxPayload FromBytes(byte[] payload)
         {
             var hue = BitConverter.ToUInt16(payload, 0);
@@ -130,6 +147,7 @@ namespace LifxNet
             throw new NotImplementedException();
         }
     }
+
     internal class LightPowerResponse : ILifxPayload
     {
         public LightPowerResponse(bool isOn)
@@ -138,6 +156,8 @@ namespace LifxNet
         }
 
         public bool IsOn { get;  }
+
+        public MessageType MessageType => MessageType.LightStatePower;
 
         internal static ILifxPayload FromBytes(byte[] payload)
         {
@@ -153,7 +173,7 @@ namespace LifxNet
     /// <summary>
     /// Response to GetVersion message.	Provides the hardware version of the device.
     /// </summary>
-    public class StateVersionResponse : ILifxPayload
+    internal class StateVersionResponse : ILifxPayload
     {
         public StateVersionResponse(uint vendor, uint product, uint version)
         {
@@ -175,6 +195,8 @@ namespace LifxNet
         /// </summary>
         public UInt32 Version { get; }
 
+        public MessageType MessageType => MessageType.DeviceStateVersion;
+
         internal static ILifxPayload FromBytes(byte[] payload)
         {
             var vendor = BitConverter.ToUInt32(payload, 0);
@@ -193,7 +215,7 @@ namespace LifxNet
     /// <summary>
     /// Response to GetHostFirmware message. Provides host firmware information.
     /// </summary>
-    public class StateHostFirmwareResponse : ILifxPayload
+    internal class StateHostFirmwareResponse : ILifxPayload
     {
         public StateHostFirmwareResponse(DateTime build, uint version)
         {
@@ -210,6 +232,8 @@ namespace LifxNet
         /// Firmware version
         /// </summary>
         public UInt32 Version { get; }
+
+        public MessageType MessageType => MessageType.DeviceStateHostFirmware;
 
         internal static ILifxPayload FromBytes(byte[] payload)
         {
@@ -235,6 +259,8 @@ namespace LifxNet
         }
 
         public byte[] Payload { get; }
+
+        public MessageType MessageType => unchecked((MessageType)(-1));
 
         internal static ILifxPayload FromBytes(byte[] payload)
         {
