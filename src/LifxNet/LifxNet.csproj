@@ -5,8 +5,8 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <Authors>Morten Nielsen</Authors>
-    <Copyright>Copyright © Morten Nielsen 2017</Copyright>
+    <Authors>Morten Nielsen, Mark Jordan</Authors>
+    <Copyright>Copyright © Morten Nielsen 2017, Mark Jordan 2019</Copyright>
     <Version>2.1.0</Version>
   </PropertyGroup>
 
