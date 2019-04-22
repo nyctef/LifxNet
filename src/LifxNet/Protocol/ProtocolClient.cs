@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LifxNet.Protocol
+namespace LifxNet
 {
     class ProtocolClient
     {
@@ -24,11 +24,11 @@ namespace LifxNet.Protocol
             }
         }
 
-        public async Task<(LifxMessage, IPEndPoint)> ReceiveMessage(IUdpClient udpClient)
+        public async Task<LifxResponse> ReceiveMessage(IUdpClient udpClient)
         {
             var response = await udpClient.ReceiveAsync();
 
-            return (LifxMessage.FromPacket(response.ReceiveResult.Buffer, response.SendClient), response.ReceiveResult.RemoteEndPoint);
+            return new LifxResponse(LifxMessage.FromPacket(response.ReceiveResult.Buffer, response.SendClient), response.ReceiveResult.RemoteEndPoint);
         }
     }
 }
