@@ -6,18 +6,20 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Collections.Concurrent;
+using System.Threading;
 
 namespace LifxNet
 {
     internal class AllInterfacesUdpClient : IDisposable
     {
-        private readonly UdpClient _receieveClient;
+        private readonly AsyncQueue<UdpReceiveResult> _receiveQueue;
         private readonly List<UdpClient> _sendClients;
 
-        public AllInterfacesUdpClient(UdpClient receieveClient, List<UdpClient> sendClients)
+        public AllInterfacesUdpClient(List<UdpClient> sendClients, AsyncQueue<UdpReceiveResult> receiveQueue)
         {
-            _receieveClient = receieveClient;
             _sendClients = sendClients;
+            _receiveQueue = receiveQueue;
         }
 
         public static AllInterfacesUdpClient Create(int port, ILogger logger = null)
@@ -25,6 +27,7 @@ namespace LifxNet
             logger = logger ?? new TraceLogger();
 
             var sendClients = new List<UdpClient>();
+            var receiveQueue = new AsyncQueue<UdpReceiveResult>();
 
             foreach (var iface in NetworkInterface.GetAllNetworkInterfaces())
             {
@@ -52,23 +55,31 @@ namespace LifxNet
                         //sendClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
                         //sendClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontRoute, true);
 
+                        void receiveCallback(IAsyncResult result)
+                        {
+                            var queue = (AsyncQueue<UdpReceiveResult>)result.AsyncState;
+                            IPEndPoint remoteEndpoint = null;
+                            var bytes = sendClient.EndReceive(result, ref remoteEndpoint);
+                            logger.LogDebug($"Received {bytes.Length} bytes from {remoteEndpoint}");
+
+                            queue.Enqueue(new UdpReceiveResult(bytes, remoteEndpoint));
+
+                            // and loop
+                            sendClient.BeginReceive(receiveCallback, queue);
+
+                        }
+                        sendClient.BeginReceive(receiveCallback, receiveQueue);
+
                         sendClients.Add(sendClient);
                     }
                 }
             }
 
-            var receiveClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
-            // TODO: recheck what all these options do
-            receiveClient.Client.Blocking = false;
-            receiveClient.DontFragment = true;
-            receiveClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-
-            return new AllInterfacesUdpClient(receiveClient, sendClients);
+            return new AllInterfacesUdpClient(sendClients, receiveQueue);
         }
 
         public void Dispose()
         {
-            _receieveClient.Dispose();
             foreach (var sendClient in _sendClients)
             {
                 sendClient.Dispose();
@@ -77,7 +88,7 @@ namespace LifxNet
 
         internal Task<UdpReceiveResult> ReceiveAsync()
         {
-            return _receieveClient.ReceiveAsync();
+            return _receiveQueue.DequeueAsync(CancellationToken.None);
         }
 
         internal Task SendAsync(byte[] msg, int length, string hostName, int port)
