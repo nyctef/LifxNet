@@ -93,7 +93,17 @@ namespace LifxNet
 
         internal Task SendAsync(byte[] msg, int length, string hostName, int port)
         {
-            return Task.WhenAll(_sendClients.Select(sc => sc.SendAsync(msg, length, hostName, port)));
+            return Task.WhenAll(_sendClients.Select(async sc =>
+            {
+                try
+                {
+                    await sc.SendAsync(msg, length, hostName, port);
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"Error while trying to send {length} bytes to {hostName}:{port} : {e.Message}",  e);
+                }
+            }));
         }
     }
 }
