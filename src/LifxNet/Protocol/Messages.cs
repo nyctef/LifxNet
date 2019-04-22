@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 
 namespace LifxNet
@@ -11,6 +12,10 @@ namespace LifxNet
         internal static AcknowledgementResponse FromBytes()
         {
             return new AcknowledgementResponse();
+        }
+
+        public void WriteToStream(BinaryWriter dw)
+        {
         }
     }
 
@@ -38,6 +43,11 @@ namespace LifxNet
 
             return new StateServiceResponse(service, port);
         }
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>
@@ -55,6 +65,11 @@ namespace LifxNet
         internal static ILifxPayload FromBytes(byte[] payload)
         {
             return new StateLabelResponse(Encoding.UTF8.GetString(payload, 0, payload.Length).Replace("\0", ""));
+        }
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -109,6 +124,11 @@ namespace LifxNet
 
             return new LightStateResponse(hue, saturation, brightness, kelvin, isOn, label);
         }
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+            throw new NotImplementedException();
+        }
     }
     internal class LightPowerResponse : ILifxPayload
     {
@@ -122,6 +142,11 @@ namespace LifxNet
         internal static ILifxPayload FromBytes(byte[] payload)
         {
             return new LightPowerResponse(BitConverter.ToUInt16(payload, 0) > 0);
+        }
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -158,6 +183,11 @@ namespace LifxNet
 
             return new StateVersionResponse(vendor, product, version);
         }
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>
@@ -190,6 +220,11 @@ namespace LifxNet
             
             return new StateHostFirmwareResponse(build, version);
         }
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     internal class UnknownResponse : ILifxPayload
@@ -204,6 +239,11 @@ namespace LifxNet
         internal static ILifxPayload FromBytes(byte[] payload)
         {
             return new UnknownResponse(payload);
+        }
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+            dw.Write(Payload);
         }
     }
 }
