@@ -1,37 +1,11 @@
 
-# LifxNet
+## LifxNet
 
-A .NET Standard 1.3 library for LIFX.
-Supports .NET, UWP, Xamarin iOS, Xamarin Android, and any other .NET Platform that has implemented .NET Standard 1.3+.
-
-Get the [Nuget package here](http://www.nuget.org/packages/LifxNet/):
-```
-PM> Install-Package LifxNet 
-```
-
-Tested with LIFX 2.0 Firmware.
+See upstream `dotMorten/LifxNet` for nuget package
 
 Based on the official [LIFX protocol docs](https://github.com/LIFX/lifx-protocol-docs)
 
-####Usage
-
-```csharp
-	client = await LifxNet.LifxClient.CreateAsync();
-	client.DeviceDiscovered += Client_DeviceDiscovered;
-	client.DeviceLost += Client_DeviceLost;
-	client.StartDeviceDiscovery();
-
-...
-
-	private async void Client_DeviceDiscovered(object sender, LifxNet.LifxClient.DeviceDiscoveryEventArgs e)
-	{
-		var bulb = e.Device as LifxNet.LightBulb;
-		await client.SetDevicePowerStateAsync(bulb, true); //Turn bulb on
-		await client.SetColorAsync(bulb, Colors.Red, 2700); //Set color to Red and 2700K Temperature			
-	}
-
-```
-See the sample apps for more examples.
+#### Usage
 
 Note: Be careful with sending too many messages to your bulbs - LIFX recommends a max of 20 messages pr second pr bulb. 
 This is especially important when using sliders to change properties of the bulb - make sure you use a throttling
