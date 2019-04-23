@@ -48,7 +48,7 @@ namespace LifxNet
                 if (data.Length > 36)
                 {
                     payload = new byte[data.Length - 36];
-                    Array.Copy(data, payload, payload.Length);
+                    Array.Copy(data, 36, payload, 0, payload.Length);
                 }
 
                 return LifxMessage.FromPayloadBytes(header, payload, respondClient);
