@@ -180,8 +180,8 @@ namespace LifxNet
             var protocolHeaderBytes = new byte[12];
 
             Array.Copy(bytes, 0, frameBytes, 0, frameBytes.Length);
-            Array.Copy(bytes, frameBytes.Length, frameBytes, 0, frameAddressBytes.Length);
-            Array.Copy(bytes, frameBytes.Length + frameAddressBytes.Length, frameBytes, 0, protocolHeaderBytes.Length);
+            Array.Copy(bytes, frameBytes.Length, frameAddressBytes, 0, frameAddressBytes.Length);
+            Array.Copy(bytes, frameBytes.Length + frameAddressBytes.Length, protocolHeaderBytes, 0, protocolHeaderBytes.Length);
 
             var frame = Frame.FromHeaderBytes(frameBytes);
             var frameAddress = FrameAddress.FromHeaderBytes(frameAddressBytes);
