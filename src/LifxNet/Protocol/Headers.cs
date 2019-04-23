@@ -73,7 +73,7 @@ namespace LifxNet
         {
             if (bytes.Length != 16) { throw new ArgumentException("Expecting 16 bytes for the frame address"); }
 
-            var target = new byte[16];
+            var target = new byte[8];
             Array.Copy(bytes, 0, target, 0, target.Length);
             // bytes 16-21 are marked as reserved
             var byte14 = bytes[14];

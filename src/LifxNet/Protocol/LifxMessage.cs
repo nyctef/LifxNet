@@ -104,7 +104,7 @@ namespace LifxNet
             return new LifxMessage(
                 new LifxHeader(
                 new Frame(size, 0x400, true, true, 0, sourceIdentifier),
-                new FrameAddress(new byte[16], responseRequired, ackRequired, sequenceNum),
+                new FrameAddress(new byte[8], responseRequired, ackRequired, sequenceNum),
                 new ProtocolHeader(payload.MessageType)),
                 payload,
                 null);
