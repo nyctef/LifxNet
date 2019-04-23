@@ -9,12 +9,14 @@ namespace LifxNet
 {
 	public partial class LifxClient : IDisposable
 	{
+        // TODO fill out the rest of this file
+
 		/// <summary>
 		/// Turns the device on
 		/// </summary>
 		public Task TurnDeviceOnAsync(Device device)
 		{
-			System.Diagnostics.Debug.WriteLine("Sending TurnDeviceOn to {0}", device.HostName);
+			System.Diagnostics.Debug.WriteLine("Sending TurnDeviceOn to {0}", device.Endpoint);
 			return SetDevicePowerStateAsync(device, true);
 		}
 		/// <summary>
@@ -24,7 +26,7 @@ namespace LifxNet
 		/// <returns></returns>
 		public Task TurnDeviceOffAsync(Device device)
 		{
-			System.Diagnostics.Debug.WriteLine("Sending TurnDeviceOff to {0}", device.HostName);
+			System.Diagnostics.Debug.WriteLine("Sending TurnDeviceOff to {0}", device.Endpoint);
 			return SetDevicePowerStateAsync(device, false);
 		}
 		/// <summary>
@@ -35,15 +37,15 @@ namespace LifxNet
 		/// <returns></returns>
 		public async Task SetDevicePowerStateAsync(Device device, bool isOn)
 		{
-			System.Diagnostics.Debug.WriteLine("Sending TurnDeviceOff to {0}", device.HostName);
-			FrameHeader header = new FrameHeader()
-			{
-				Identifier = (uint)randomizer.Next(),
-				AcknowledgeRequired = true
-			};
+			//System.Diagnostics.Debug.WriteLine("Sending TurnDeviceOff to {0}", device.HostName);
+			//FrameHeader header = new FrameHeader()
+			//{
+			//	Identifier = (uint)randomizer.Next(),
+			//	AcknowledgeRequired = true
+			//};
 
-			await BroadcastMessageAsync<AcknowledgementResponse>(device.SendClient, device.HostName, header,
-				MessageType.DeviceSetPower, (UInt16)(isOn ? 65535 : 0));
+			//await BroadcastMessageAsync<AcknowledgementResponse>(device.SendClient, device.HostName, header,
+			//	MessageType.DeviceSetPower, (UInt16)(isOn ? 65535 : 0));
 		}
 
 		/// <summary>
@@ -53,13 +55,14 @@ namespace LifxNet
 		/// <returns></returns>
 		public async Task<string> GetDeviceLabelAsync(Device device)
 		{
-			FrameHeader header = new FrameHeader()
-			{
-				Identifier = (uint)randomizer.Next(),
-				AcknowledgeRequired = false
-			};
-			var resp = await BroadcastMessageAsync<StateLabelResponse>(device.SendClient, device.HostName, header, MessageType.DeviceGetLabel);
-			return resp.Label;
+			//FrameHeader header = new FrameHeader()
+			//{
+			//	Identifier = (uint)randomizer.Next(),
+			//	AcknowledgeRequired = false
+			//};
+			//var resp = await BroadcastMessageAsync<StateLabelResponse>(device.SendClient, device.HostName, header, MessageType.DeviceGetLabel);
+			//return resp.Label;
+            return "TODO";
 		}
 
 		/// <summary>
@@ -70,42 +73,45 @@ namespace LifxNet
 		/// <returns></returns>
 		public async Task SetDeviceLabelAsync(Device device, string label)
 		{
-			FrameHeader header = new FrameHeader()
-			{
-				Identifier = (uint)randomizer.Next(),
-				AcknowledgeRequired = true
-			};
-			var resp = await BroadcastMessageAsync<AcknowledgementResponse>(
-                device.SendClient, device.HostName, header, MessageType.DeviceSetLabel, label);
+			//FrameHeader header = new FrameHeader()
+			//{
+			//	Identifier = (uint)randomizer.Next(),
+			//	AcknowledgeRequired = true
+			//};
+			//var resp = await BroadcastMessageAsync<AcknowledgementResponse>(
+   //             device.SendClient, device.HostName, header, MessageType.DeviceSetLabel, label);
 		}
 
 		/// <summary>
 		/// Gets the device version
 		/// </summary>
-		public async Task<StateVersionResponse> GetDeviceVersionAsync(Device device)
+		internal async Task<StateVersionResponse> GetDeviceVersionAsync(Device device)
 		{
-			FrameHeader header = new FrameHeader()
-			{
-				Identifier = (uint)randomizer.Next(),
-				AcknowledgeRequired = false
-			};
-			var resp = await BroadcastMessageAsync<StateVersionResponse>(device.SendClient, device.HostName, header, MessageType.DeviceGetVersion);
-			return resp;
+			//FrameHeader header = new FrameHeader()
+			//{
+			//	Identifier = (uint)randomizer.Next(),
+			//	AcknowledgeRequired = false
+			//};
+			//var resp = await BroadcastMessageAsync<StateVersionResponse>(device.SendClient, device.HostName, header, MessageType.DeviceGetVersion);
+			//return resp;
+            return new StateVersionResponse(1, 2, 3);
 		}
+
 		/// <summary>
 		/// Gets the device's host firmware
 		/// </summary>
 		/// <param name="device"></param>
 		/// <returns></returns>
-		public async Task<StateHostFirmwareResponse> GetDeviceHostFirmwareAsync(Device device)
+		internal async Task<StateHostFirmwareResponse> GetDeviceHostFirmwareAsync(Device device)
 		{
-			FrameHeader header = new FrameHeader()
-			{
-				Identifier = (uint)randomizer.Next(),
-				AcknowledgeRequired = false
-			};
-			var resp = await BroadcastMessageAsync<StateHostFirmwareResponse>(device.SendClient, device.HostName, header, MessageType.DeviceGetHostFirmware);
-			return resp;
+			//FrameHeader header = new FrameHeader()
+			//{
+			//	Identifier = (uint)randomizer.Next(),
+			//	AcknowledgeRequired = false
+			//};
+			//var resp = await BroadcastMessageAsync<StateHostFirmwareResponse>(device.SendClient, device.HostName, header, MessageType.DeviceGetHostFirmware);
+			//return resp;
+            return new StateHostFirmwareResponse(DateTime.Now, 1);
 		}
 	}
 }

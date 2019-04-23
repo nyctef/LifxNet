@@ -251,6 +251,70 @@ namespace LifxNet
         }
     }
 
+    internal class LightSetPowerRequest : ILifxPayload
+    {
+        public readonly bool IsOn;
+        public readonly UInt32 TransitionDuration;
+
+        public LightSetPowerRequest(bool isOn, UInt32 totalMilliseconds)
+        {
+            IsOn = isOn;
+            TransitionDuration = totalMilliseconds;
+        }
+
+        public MessageType MessageType => MessageType.LightSetPower;
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+            dw.Write((UInt16) (IsOn ? UInt16.MaxValue : 0));
+            dw.Write(TransitionDuration);
+        }
+    }
+
+    internal class LightGetPowerRequest : ILifxPayload
+    {
+        public MessageType MessageType => MessageType.LightGetPower;
+
+        public void WriteToStream(BinaryWriter dw) { }
+    }
+
+    internal class LightSetColorRequest : ILifxPayload
+    {
+        private UInt16 hue;
+        private UInt16 saturation;
+        private UInt16 brightness;
+        private UInt16 kelvin;
+        private UInt32 duration;
+
+        public LightSetColorRequest(UInt16 hue, UInt16 saturation, UInt16 brightness, UInt16 kelvin, UInt32 duration)
+        {
+            this.hue = hue;
+            this.saturation = saturation;
+            this.brightness = brightness;
+            this.kelvin = kelvin;
+            this.duration = duration;
+        }
+
+        public MessageType MessageType => MessageType.LightSetColor;
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+            dw.Write((byte)0x00); //reserved
+            dw.Write(hue);
+            dw.Write(saturation);
+            dw.Write(brightness);
+            dw.Write(kelvin);
+            dw.Write(duration);
+        }
+    }
+
+    internal class LightGetStateRequest : ILifxPayload
+    {
+        public MessageType MessageType => MessageType.LightGet;
+
+        public void WriteToStream(BinaryWriter dw) { }
+    }
+
     internal class UnknownResponse : ILifxPayload
     {
         internal UnknownResponse(byte[] payload)
@@ -272,4 +336,5 @@ namespace LifxNet
             dw.Write(Payload);
         }
     }
+
 }

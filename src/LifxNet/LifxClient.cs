@@ -15,28 +15,27 @@ namespace LifxNet
     public partial class LifxClient : IDisposable
 	{
 		
-		private const int Port = 56700;
-		private AllInterfacesUdpClient _socket;
+        private readonly ConversationClient _client;
         private bool _isRunning;
 
-		private LifxClient()
+		private LifxClient(ConversationClient client, ILogger logger)
 		{
+            _client = client;
 		}
 
 		/// <summary>
 		/// Creates a new LIFX client.
 		/// </summary>
 		/// <returns>client</returns>
-		public static Task<LifxClient> CreateAsync()
+		public static Task<LifxClient> CreateAsync(ILogger logger)
 		{
-			LifxClient client = new LifxClient();
+			LifxClient client = new LifxClient(new ConversationClient(logger), logger);
 			client.Initialize();
             return Task.FromResult(client);
 		}
 
         private void Initialize()
 		{
-			_socket = AllInterfacesUdpClient.Create(Port);
             _isRunning = true;
             StartReceiveLoop();
 		}

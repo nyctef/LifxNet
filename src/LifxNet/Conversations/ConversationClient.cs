@@ -56,6 +56,11 @@ namespace LifxNet
             return tcs.Task;
         }
 
+        internal Task SendMessage(LifxMessage message, object endpoint)
+        {
+            throw new NotImplementedException();
+        }
+
         private void StartReceiveLoop()
         {
             _isRunning = true;

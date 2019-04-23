@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -140,24 +141,23 @@ namespace LifxNet
 	public abstract class Device
 	{
 		internal Device() { }
-		/// <summary>
-		/// Hostname for the device
-		/// </summary>
-		public string HostName { get; internal set; }
+
 		/// <summary>
 		/// Service ID
 		/// </summary>
 		public byte Service { get; internal set; }
-		/// <summary>
-		/// Service port
-		/// </summary>
-		public UInt32 Port { get; internal set; }
-		internal DateTime LastSeen { get; set; }
+
+		internal DateTime LastSeen { get; internal set; }
+
         /// <summary>
         /// Gets the MAC address
         /// </summary>
         public byte[] MacAddress { get; internal set; }
-        internal IUdpClient SendClient { get; set; }
+
+        internal IUdpClient SendClient { get; internal set; }
+
+        public IPEndPoint Endpoint { get; internal set;}
+
         /// <summary>
         /// Gets the MAC address
         /// </summary>
