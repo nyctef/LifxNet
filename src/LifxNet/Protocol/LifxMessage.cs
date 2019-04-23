@@ -110,7 +110,7 @@ namespace LifxNet
                 null);
         }
 
-        public static LifxMessage CreateTargeted(ILifxPayload payload, uint sourceIdentifier, bool responseRequired, bool ackRequired, byte sequenceNum, byte[] targetMac)
+        public static LifxMessage CreateTargeted(ILifxPayload payload, uint sourceIdentifier, bool responseRequired, bool ackRequired, byte sequenceNum, byte[] targetMac, IUdpClient respondClient)
         {
             ushort size = GetPacketSize(payload);
 
@@ -120,7 +120,7 @@ namespace LifxNet
                 new FrameAddress(targetMac, responseRequired, ackRequired, sequenceNum),
                 new ProtocolHeader(payload.MessageType)),
                 payload,
-                null);
+                respondClient);
         }
 
         private static ushort GetPacketSize(ILifxPayload payload)

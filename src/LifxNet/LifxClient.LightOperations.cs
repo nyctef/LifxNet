@@ -42,7 +42,7 @@ namespace LifxNet
 				throw new ArgumentOutOfRangeException("transitionDuration");
 
 			var payload = new LightSetPowerRequest(isOn, (UInt32)transitionDuration.TotalMilliseconds);
-            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), false, true, 0, bulb.MacAddress);
+            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), false, true, 0, bulb.MacAddress, bulb.SendClient);
 
             var response = await _client.SendMessage(message, bulb.Endpoint);
             //return response.Message.Payload is AcknowledgementResponse ack;
@@ -55,7 +55,7 @@ namespace LifxNet
 		public async Task<bool> GetLightPowerAsync(LightBulb bulb)
 		{
             var payload = new LightGetPowerRequest();
-            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), true, false, 0, bulb.MacAddress);
+            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), true, false, 0, bulb.MacAddress, bulb.SendClient);
 
             var response = await _client.SendMessage(message, bulb.Endpoint);
             return (response.Message.Payload is LightPowerResponse power) ? power.IsOn : throw new InvalidOperationException("wrong response");
@@ -108,7 +108,7 @@ namespace LifxNet
             UInt32 duration = (UInt32)transitionDuration.TotalMilliseconds;
 
             var payload = new LightSetColorRequest(hue, saturation,  brightness, kelvin, duration);
-            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), false, true, 0, bulb.MacAddress);
+            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), false, true, 0, bulb.MacAddress, bulb.SendClient);
             var response = await _client.SendMessage(message, bulb.Endpoint);
 		}
 
@@ -120,7 +120,7 @@ namespace LifxNet
         public async Task<LightState> GetLightStateAsync(LightBulb bulb)
 		{
             var payload = new LightGetStateRequest();
-            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), true, false, 0, bulb.MacAddress);
+            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), true, false, 0, bulb.MacAddress, bulb.SendClient);
 
             var response = await _client.SendMessage(message, bulb.Endpoint);
             return (response.Message.Payload is LightStateResponse state) ? new LightState(state) : throw new InvalidOperationException("wrong response");
