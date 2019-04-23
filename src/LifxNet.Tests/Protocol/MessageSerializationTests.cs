@@ -14,7 +14,7 @@ namespace LifxNet.Tests.Protocol
         {
             var expected = "24 00 00 34 4c e5 c1 06 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02 00 00 00";
 
-            var message = LifxMessage.CreateBroadcast(new GetServiceRequest(), 113370444, true, false, 0);
+            var message = LifxMessage.CreateBroadcast(new GetServiceRequest(), 113370444, false, false, 0);
             var actual = FormatBytes(GetBytes(message));
 
             Assert.AreEqual(expected, actual);
@@ -32,7 +32,7 @@ namespace LifxNet.Tests.Protocol
 
         private string FormatBytes(byte[] bytes)
         {
-            return string.Join(" ", bytes.Select(b => b.ToString("X2")).ToArray()).ToLower();
+            return string.Join(" ", bytes.Select(b => b.ToString("x2")).ToArray());
         }
     }
 }

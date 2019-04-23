@@ -42,14 +42,14 @@ namespace LifxNet
         public void WriteToStream(BinaryWriter bw)
         {
             bw.Write(Size);
-
-            var protocol = (UInt16)(
-                Protocol + 
+            bw.Write((byte)(Protocol & 0xFF)); // lower octet for protocol
+            var protocol = (byte)(
+                ((Protocol & 0xFF00) >> 8) + 
                 (Addressable ? 1 << 4 : 0) +
                 (Tagged ? 1 << 5 : 0) +
                 (Origin << 6)
                 );
-            bw.Write(protocol);
+            bw.Write((byte)protocol);
             bw.Write(SourceIdentifier);
         }
     }
