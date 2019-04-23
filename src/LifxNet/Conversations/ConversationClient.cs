@@ -29,7 +29,7 @@ namespace LifxNet
 
         public void BroadcastMessage(LifxMessage message)
         {
-            _protocolClient.SendMessage(_broadcastClient, message, new IPEndPoint(IPAddress.Any, Port));
+            _protocolClient.SendMessage(_broadcastClient, message, new IPEndPoint(IPAddress.Broadcast, Port));
 
             //var tcs = new TaskCompletionSource()
             // TODO: is there a sensible way to return results from this?
