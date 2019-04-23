@@ -2,7 +2,7 @@
 {
     public class LightState
     {
-        public LightState(LightStateResponse state)
+        internal LightState(LightStateResponse state)
         {
             // TODO: translate into degrees/percentages
             Hue = state.Hue;

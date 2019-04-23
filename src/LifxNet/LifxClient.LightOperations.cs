@@ -20,7 +20,7 @@ namespace LifxNet
 		/// <returns></returns>
 		public Task TurnBulbOnAsync(LightBulb bulb, TimeSpan transitionDuration)
 		{
-			System.Diagnostics.Debug.WriteLine("Sending TurnBulbOn to {0}", bulb.HostName);
+			System.Diagnostics.Debug.WriteLine("Sending TurnBulbOn to {0}", bulb.Endpoint);
 			return SetLightPowerAsync(bulb, transitionDuration, true);
 		}
 
@@ -29,7 +29,7 @@ namespace LifxNet
 		/// </summary>
 		public Task TurnBulbOffAsync(LightBulb bulb, TimeSpan transitionDuration)
 		{
-			System.Diagnostics.Debug.WriteLine("Sending TurnBulbOff to {0}", bulb.HostName);
+			System.Diagnostics.Debug.WriteLine("Sending TurnBulbOff to {0}", bulb.Endpoint);
 			return SetLightPowerAsync(bulb, transitionDuration, false);
 		}
 

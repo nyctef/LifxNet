@@ -1,6 +1,6 @@
 ﻿namespace LifxNet
 {
-    internal class TraceLogger : ILogger
+    public class TraceLogger : ILogger
     {
         public void LogDebug(string message)
         {

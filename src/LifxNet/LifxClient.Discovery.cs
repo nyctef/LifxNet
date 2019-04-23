@@ -44,13 +44,13 @@ namespace LifxNet
 			public Device Device { get; internal set; }
 		}
 
-		private void ProcessDeviceDiscoveryMessage(System.Net.IPAddress remoteAddress, int remotePort, LifxMessage msg, IUdpClient respondClient)
+		private void ProcessDeviceDiscoveryMessage(IPEndPoint remoteEndpoint, LifxMessage msg)
 		{
             string id = msg.Header.FrameAddress.TargetMacAddressName; //remoteAddress.ToString()
             if (DiscoveredBulbs.ContainsKey(id))  //already discovered
             {
 				DiscoveredBulbs[id].LastSeen = DateTime.UtcNow; //Update datestamp
-                DiscoveredBulbs[id].HostName = remoteAddress.ToString(); //Update hostname in case IP changed
+                DiscoveredBulbs[id].Endpoint = remoteEndpoint;
 
                 return;
 			}
@@ -66,20 +66,17 @@ namespace LifxNet
 
 			var device = new LightBulb()
 			{
-				HostName = remoteAddress.ToString(),
+				Endpoint = remoteEndpoint,
 				Service = stateServiceResponse.Service,
-				Port = stateServiceResponse.Port,
 				LastSeen = DateTime.UtcNow,
                 MacAddress = msg.Header.FrameAddress.TargetMacAddress,
-                SendClient = respondClient,
+                SendClient = msg.RespondClient,
 			};
 			DiscoveredBulbs[id] = device;
 			devices.Add(device);
-			if (DeviceDiscovered != null)
-			{
-				DeviceDiscovered(this, new DeviceDiscoveryEventArgs() { Device = device });
-			}
-		}
+
+            DeviceDiscovered?.Invoke(this, new DeviceDiscoveryEventArgs() { Device = device });
+        }
 
 		/// <summary>
 		/// Begins searching for bulbs.
@@ -94,16 +91,17 @@ namespace LifxNet
 			_DiscoverCancellationSource = new CancellationTokenSource();
 			var token = _DiscoverCancellationSource.Token;
 			var source = discoverSourceID = (uint)randomizer.Next(int.MaxValue);
+            _client.UnhandledMessage += (o,e) => ProcessDeviceDiscoveryMessage(e.RemoteEndpoint, e.Message);
 			//Start discovery thread
             Task.Run(async () =>
 			{
-				System.Diagnostics.Debug.WriteLine("Sending GetServices");
-                var message = LifxMessage.CreateBroadcast(new GetServiceRequest(), source, false, false, 0);
 				while (!token.IsCancellationRequested)
 				{
 					try
 					{
-						await BroadcastMessageAsync(_socket, null, message);
+                        System.Diagnostics.Debug.WriteLine("Sending GetServices");
+                        var message = LifxMessage.CreateBroadcast(new GetServiceRequest(), source, true, false, 0);
+                        _client.BroadcastMessage(message);
 					}
 					catch { }
 					await Task.Delay(5000);
@@ -147,14 +145,14 @@ namespace LifxNet
 		/// </summary>
 		public byte Service { get; internal set; }
 
-		internal DateTime LastSeen { get; internal set; }
+		internal DateTime LastSeen { get; set; }
 
         /// <summary>
         /// Gets the MAC address
         /// </summary>
         public byte[] MacAddress { get; internal set; }
 
-        internal IUdpClient SendClient { get; internal set; }
+        internal IUdpClient SendClient { get; set; }
 
         public IPEndPoint Endpoint { get; internal set;}
 
