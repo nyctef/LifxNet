@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -173,9 +174,28 @@ namespace LifxNet
     /// </summary>
     public sealed class LightBulb : Device
 	{
-		internal LightBulb()
+		public static LightBulb Create(IPEndPoint iPEndPoint, PhysicalAddress macAddress, byte service)
 		{
-		}
+            var result = new LightBulb();
+            result.Endpoint = iPEndPoint;
+            // mac addresses take up 8 bytes in the packet
+            result.MacAddress = macAddress.GetAddressBytes().Concat(new byte[] { 0, 0 }).ToArray();
+            result.Service = service;
+            result.SendClient = new SingleUdpClient(new UdpClient(BestLocalEndPoint(iPEndPoint)));
+            return result;
+        }
+
+        // based on https://stackoverflow.com/a/15087172
+        private static IPEndPoint BestLocalEndPoint(IPEndPoint remoteIPEndPoint)
+        {
+            Console.WriteLine($"Finding best local endpoint to use to connect to {remoteIPEndPoint}...");
+            using (var testSocket = new Socket(remoteIPEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp))
+            {
+                testSocket.Connect(remoteIPEndPoint);
+                Console.WriteLine($"... got {testSocket.LocalEndPoint}");
+                return (IPEndPoint)testSocket.LocalEndPoint;
+            }
+        }
 
     }
 }
