@@ -20,6 +20,17 @@ namespace LifxNet.Tests.Protocol
             Assert.AreEqual(expected, actual);
         }
 
+        [Test]
+        public void LightSetPower()
+        {
+            var expected = "2a 00 00 14 c0 65 74 0c d0 73 d5 28 b3 34 00 00 00 00 00 00 00 00 00 01 00 00 00 00 00 00 00 00 75 00 00 00 ff ff c8 00 00 00";
+
+            var message = LifxMessage.CreateTargeted(new LightSetPowerRequest(true, 200), 208954816, false, false, 1, new byte[] { 0xd0, 0x73, 0xd5, 0x28, 0xb3, 0x34, 0, 0 }, null);
+            var actual = FormatBytes(GetBytes(message));
+
+            Assert.AreEqual(expected, actual);
+        }
+
         private byte[] GetBytes(LifxMessage message)
         {
             using (var memoryStream = new MemoryStream())
