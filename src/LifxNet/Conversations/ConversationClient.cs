@@ -43,22 +43,17 @@ namespace LifxNet
 
         public Task<LifxResponse> SendMessage(LifxMessage message, IPEndPoint destination)
         {
-            if (message.RespondClient == null) { throw new ArgumentException("Need a udp client to send targeted messages with"); }
-
             // TODO check if `message` actually requires a response? (requireAck or requireResponse needs to be set)
+            // TODO: we can perhaps be smarter when message.RespondClient is not set and try to only send on the correct client for `destination`
+            var client = message.RespondClient ?? _broadcastClient;
 
-            _protocolClient.SendMessage(message.RespondClient, message, destination);
+            _protocolClient.SendMessage(client, message, destination);
 
             var tcs = new TaskCompletionSource<LifxResponse>();
 
             _pendingRequests.AddOrUpdate((message.Header.Frame.SourceIdentifier, message.Header.FrameAddress.SequenceNumber), tcs, (__,_)=> tcs);
 
             return tcs.Task;
-        }
-
-        internal Task SendMessage(LifxMessage message, object endpoint)
-        {
-            throw new NotImplementedException();
         }
 
         private void StartReceiveLoop()
@@ -72,9 +67,9 @@ namespace LifxNet
                         var result = await _protocolClient.ReceiveMessage(_broadcastClient);
                         HandleIncomingMessages(result);
                     }
-                    catch
+                    catch ( Exception e)
                     {
-                        // TODO logging
+                        Console.WriteLine($"Error handling incoming message: {e.Message}");
                     }
             });
         }
@@ -82,12 +77,18 @@ namespace LifxNet
         private void HandleIncomingMessages(LifxResponse result)
         {
             var header = result.Message.Header;
-            if (_pendingRequests.TryGetValue((header.Frame.SourceIdentifier, result.Message.Header.FrameAddress.SequenceNumber), out var pendingTcs))
+            var threadId = (header.Frame.SourceIdentifier, result.Message.Header.FrameAddress.SequenceNumber);
+
+            Console.WriteLine($"Incoming message with thread id {threadId}");
+
+            if (_pendingRequests.TryGetValue(threadId, out var pendingTcs))
             {
+                Console.WriteLine("Setting TCS result");
                 pendingTcs.TrySetResult(result);
             }
             else
             {
+                Console.WriteLine("Treating as unhandled/unexpected");
                 UnhandledMessage?.Invoke(this, result);
             }
         }
