@@ -26,3 +26,8 @@ FROM mcr.microsoft.com/dotnet/core/runtime:2.2 AS runtime
 WORKDIR /app
 COPY --from=build /app/lifxctl/out ./
 ENTRYPOINT ["dotnet", "lifxctl.dll"]
+
+FROM mcr.microsoft.com/dotnet/core/runtime:2.2-stretch-slim-arm32v7 AS runtime-arm32v7
+WORKDIR /app
+COPY --from=build /app/lifxctl/out ./
+ENTRYPOINT ["dotnet", "lifxctl.dll"]
