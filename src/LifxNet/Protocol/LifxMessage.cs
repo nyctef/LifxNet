@@ -110,6 +110,9 @@ namespace LifxNet
                 null);
         }
 
+        // TODO: split into CreateCommand/CreateQuery to take away responseRequired/ackRequired parameters?
+        //  do we ever want/need to set responseRequired?
+        //  maybe pull sourceIdentifier/sequenceNum generation inside a class?
         public static LifxMessage CreateTargeted(ILifxPayload payload, uint sourceIdentifier, bool responseRequired, bool ackRequired, byte sequenceNum, byte[] targetMac, IUdpClient respondClient)
         {
             ushort size = GetPacketSize(payload);
@@ -125,7 +128,7 @@ namespace LifxNet
 
         private static ushort GetPacketSize(ILifxPayload payload)
         {
-            // TODO: is there a nicer way to get the payload size? Serializing it twice feels a bit circular
+            // TODO: is there a nicer way to get the payload size? Serializing it twice feels a bit circular.
             // maybe just put it on the interface?
             const int headerSize = 36;
 

@@ -11,6 +11,12 @@ using System.Threading.Tasks;
 
 namespace lifxctl
 {
+    // TODOs:
+    // sort out logging (remove console/trace usages and pass logger everywhere)
+    // expand command list to cover other lifx messages
+    // clean up code a bit more
+
+
     class Program
     {
         static async Task<int> Main(string[] args)
