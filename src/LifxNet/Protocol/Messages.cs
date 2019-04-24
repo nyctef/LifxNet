@@ -79,7 +79,7 @@ namespace LifxNet
 
         internal static ILifxPayload FromBytes(byte[] payload)
         {
-            return new StateLabelResponse(Encoding.UTF8.GetString(payload, 0, payload.Length).Replace("\0", ""));
+            return new StateLabelResponse(Utilities.DecodeString(payload));
         }
 
         public void WriteToStream(BinaryWriter dw)
@@ -155,7 +155,7 @@ namespace LifxNet
             IsOn = isOn;
         }
 
-        public bool IsOn { get;  }
+        public bool IsOn { get; }
 
         public MessageType MessageType => MessageType.LightStatePower;
 
@@ -241,7 +241,7 @@ namespace LifxNet
             var build = Utilities.Epoch.AddMilliseconds(nanoseconds * 0.000001);
             //8..15 UInt64 is reserved
             var version = BitConverter.ToUInt32(payload, 16);
-            
+
             return new StateHostFirmwareResponse(build, version);
         }
 
@@ -266,14 +266,69 @@ namespace LifxNet
 
         public void WriteToStream(BinaryWriter dw)
         {
-            dw.Write((UInt16) (IsOn ? UInt16.MaxValue : 0));
+            dw.Write((UInt16)(IsOn ? UInt16.MaxValue : 0));
             dw.Write(TransitionDuration);
+        }
+    }
+
+    internal class DeviceSetPowerRequest : ILifxPayload
+    {
+        public readonly bool IsOn;
+
+        public DeviceSetPowerRequest(bool isOn)
+        {
+            IsOn = isOn;
+        }
+
+        public MessageType MessageType => MessageType.DeviceSetPower;
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+            dw.Write((UInt16)(IsOn ? UInt16.MaxValue : 0));
         }
     }
 
     internal class LightGetPowerRequest : ILifxPayload
     {
         public MessageType MessageType => MessageType.LightGetPower;
+
+        public void WriteToStream(BinaryWriter dw) { }
+    }
+
+    internal class DeviceGetLabelRequest : ILifxPayload
+    {
+        public MessageType MessageType => MessageType.DeviceGetLabel;
+
+        public void WriteToStream(BinaryWriter dw) { }
+    }
+
+    internal class DeviceSetLabelRequest : ILifxPayload
+    {
+        public readonly string Label;
+
+        public DeviceSetLabelRequest(string label)
+        {
+            Label = label;
+        }
+
+        public MessageType MessageType => MessageType.DeviceSetLabel;
+
+        public void WriteToStream(BinaryWriter dw)
+        {
+            dw.Write(Utilities.EncodeString(Label));
+        }
+    }
+
+    internal class DeviceGetVersionRequest : ILifxPayload
+    {
+        public MessageType MessageType => MessageType.DeviceGetVersion;
+
+        public void WriteToStream(BinaryWriter dw) { }
+    }
+
+    internal class DeviceGetHostFirmware : ILifxPayload
+    {
+        public MessageType MessageType => MessageType.DeviceGetHostFirmware;
 
         public void WriteToStream(BinaryWriter dw) { }
     }
