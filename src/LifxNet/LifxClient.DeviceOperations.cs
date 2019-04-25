@@ -69,7 +69,7 @@ namespace LifxNet
         /// <summary>
         /// Gets the device version
         /// </summary>
-        internal async Task<DeviceVersion> GetDeviceVersionAsync(Device device)
+        public async Task<DeviceVersion> GetDeviceVersionAsync(Device device)
         {
             System.Diagnostics.Debug.WriteLine("Sending GetDeviceVersion to {0}", device.Endpoint);
 
@@ -83,7 +83,7 @@ namespace LifxNet
         /// <summary>
         /// Gets the device's host firmware
         /// </summary>
-        internal async Task<FirmwareVersion> GetDeviceHostFirmwareAsync(Device device)
+        public async Task<FirmwareVersion> GetDeviceHostFirmwareAsync(Device device)
         {
             System.Diagnostics.Debug.WriteLine("Sending GetDeviceHostFirmware to {0}", device.Endpoint);
 

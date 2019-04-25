@@ -2,9 +2,9 @@ using System;
 
 namespace LifxNet
 {
-    internal class FirmwareVersion
+    public class FirmwareVersion
     {
-        public FirmwareVersion(StateHostFirmwareResponse versionResponse)
+        internal FirmwareVersion(StateHostFirmwareResponse versionResponse)
         {
             Build = versionResponse.Build;
             // TODO: parse version to make it useful

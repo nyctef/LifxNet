@@ -33,8 +33,8 @@ namespace lifxctl
             Option deviceSpec = new Option("--device-spec", argument: new Argument<string>() { Arity = ArgumentArity.ExactlyOne });
             ValidateSymbol checkDeviceSpec = r =>
                {
-                // apparently we have to do this validation manually at the moment (https://github.com/dotnet/command-line-api/issues/484)
-                if (r.Children["device-spec"] is null)
+                   // apparently we have to do this validation manually at the moment (https://github.com/dotnet/command-line-api/issues/484)
+                   if (r.Children["device-spec"] is null)
                    {
                        return "device-spec is required";
                    }
@@ -53,8 +53,21 @@ namespace lifxctl
 
             lightCommand.AddCommand(lightOnCommand);
             lightCommand.AddCommand(lightOffCommand);
-
             rootCommand.AddCommand(lightCommand);
+
+            var deviceCommand = new Command("device");
+
+            Command getDeviceLabelCommand = new Command("get-label") { Handler = CommandHandler.Create<string>(RunGetDeviceLabel), };
+            getDeviceLabelCommand.AddOption(deviceSpec);
+            getDeviceLabelCommand.Argument.AddValidator(checkDeviceSpec);
+
+            Command getDeviceVersionCommand = new Command("get-version") { Handler = CommandHandler.Create<string>(RunGetDeviceVersion), };
+            getDeviceVersionCommand.AddOption(deviceSpec);
+            getDeviceVersionCommand.Argument.AddValidator(checkDeviceSpec);
+
+            deviceCommand.AddCommand(getDeviceLabelCommand);
+            deviceCommand.AddCommand(getDeviceVersionCommand);
+            rootCommand.AddCommand(deviceCommand);
 
 
             var parser = new CommandLineBuilder(rootCommand)
@@ -70,7 +83,7 @@ namespace lifxctl
         {
             var client = await LifxClient.CreateAsync(new TraceLogger());
 
-            client.DeviceDiscovered += (o,e) =>
+            client.DeviceDiscovered += (o, e) =>
             {
                 Console.WriteLine($"{e.Device.MacAddressName}@{e.Device.Endpoint.Address}:{e.Device.Endpoint.Port}");
                 //Console.WriteLine($"Device {e.Device.MacAddressName} found @ {e.Device.Endpoint}");
@@ -92,7 +105,7 @@ namespace lifxctl
         private static async Task<int> RunLightOn(string deviceSpec)
         {
             var parsedSpec = DeviceSpec.Parse(deviceSpec);
-            var bulb = LightBulb.Create(parsedSpec.IPEndPoint, parsedSpec.MacAddress, service:1);
+            var bulb = LightBulb.Create(parsedSpec.IPEndPoint, parsedSpec.MacAddress, service: 1);
 
             var client = await LifxClient.CreateAsync(new TraceLogger());
 
@@ -112,6 +125,42 @@ namespace lifxctl
 
             return 0;
         }
+
+        private static async Task<int> RunGetDeviceLabel(string deviceSpec)
+        {
+            var parsedSpec = DeviceSpec.Parse(deviceSpec);
+            // TODO: don't assume it's a bulb
+            var device = LightBulb.Create(parsedSpec.IPEndPoint, parsedSpec.MacAddress, service: 1);
+
+            var client = await LifxClient.CreateAsync(new TraceLogger());
+
+            var result = await client.GetDeviceLabelAsync(device);
+
+            Console.WriteLine(result);
+            return 0;
+        }
+
+        private static async Task<int> RunGetDeviceVersion(string deviceSpec)
+        {
+            var parsedSpec = DeviceSpec.Parse(deviceSpec);
+            // TODO: don't assume it's a bulb
+            var device = LightBulb.Create(parsedSpec.IPEndPoint, parsedSpec.MacAddress, service: 1);
+
+            var client = await LifxClient.CreateAsync(new TraceLogger());
+
+            var versionTask = client.GetDeviceVersionAsync(device);
+            var firmwareVersionTask = client.GetDeviceHostFirmwareAsync(device);
+
+            var version = await versionTask;
+            var firmwareVersion = await firmwareVersionTask;
+
+            // TODO: look up values to something meaningful
+            Console.WriteLine($"Vendor ID: {version.Vendor} Product ID: {version.Product} Version: {version.Version}");
+            Console.WriteLine($"Firmware version {firmwareVersion.Version} (built at {firmwareVersion.Build})");
+
+            return 0;
+        }
+
     }
 
     internal class DeviceSpec
