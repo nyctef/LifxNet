@@ -47,7 +47,7 @@ namespace LifxNet
             System.Diagnostics.Debug.WriteLine("Sending GetDeviceLabel to {0}", device.Endpoint);
 
             var payload = new DeviceGetLabelRequest();
-            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), false, true, 0, device.MacAddress, device.SendClient);
+            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), true, false, 0, device.MacAddress, device.SendClient);
 
             var response = await _client.SendMessage(message, device.Endpoint);
             return (response.Message.Payload is StateLabelResponse label) ? label.Label : throw new InvalidOperationException("wrong response");
@@ -74,7 +74,7 @@ namespace LifxNet
             System.Diagnostics.Debug.WriteLine("Sending GetDeviceVersion to {0}", device.Endpoint);
 
             var payload = new DeviceGetVersionRequest();
-            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), false, true, 0, device.MacAddress, device.SendClient);
+            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), true, false, 0, device.MacAddress, device.SendClient);
 
             var response = await _client.SendMessage(message, device.Endpoint);
             return (response.Message.Payload is StateVersionResponse versionResponse) ? new DeviceVersion(versionResponse) : throw new InvalidOperationException("wrong response");
@@ -88,7 +88,7 @@ namespace LifxNet
             System.Diagnostics.Debug.WriteLine("Sending GetDeviceHostFirmware to {0}", device.Endpoint);
 
             var payload = new DeviceGetHostFirmware();
-            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), false, true, 0, device.MacAddress, device.SendClient);
+            var message = LifxMessage.CreateTargeted(payload, (uint)randomizer.Next(), true, false, 0, device.MacAddress, device.SendClient);
 
             var response = await _client.SendMessage(message, device.Endpoint);
             return (response.Message.Payload is StateHostFirmwareResponse versionResponse) ? new FirmwareVersion(versionResponse) : throw new InvalidOperationException("wrong response");
